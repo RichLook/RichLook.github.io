@@ -63,22 +63,25 @@
         
         var isDrawing = false;
         
-        canvas.addEventListener('mousedown', function(e) {
+        // 添加觸摸事件监听器
+        canvas.addEventListener('touchstart', function(e) {
             isDrawing = true;
+            var touch = e.touches[0];
             context.beginPath();
-            context.moveTo(e.clientX - canvas.offsetLeft, e.clientY - canvas.offsetTop);
+            context.moveTo(touch.clientX - canvas.offsetLeft, touch.clientY - canvas.offsetTop);
         });
         
-        canvas.addEventListener('mousemove', function(e) {
+        canvas.addEventListener('touchmove', function(e) {
             if (isDrawing) {
-                context.lineTo(e.clientX - canvas.offsetLeft, e.clientY - canvas.offsetTop);
+                var touch = e.touches[0];
+                context.lineTo(touch.clientX - canvas.offsetLeft, touch.clientY - canvas.offsetTop);
                 context.strokeStyle = '#000';
                 context.lineWidth = 2;
                 context.stroke();
             }
         });
         
-        canvas.addEventListener('mouseup', function() {
+        canvas.addEventListener('touchend', function() {
             isDrawing = false;
         });
         
