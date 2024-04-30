@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>在背景圖片上畫線</title>
+<style>
+    #body{
+        margin: 0;
+        padding: 0;
+        background-image: url('./image/bgimg.jpg');
+        /*background-size: cover;*/
+        background-repeat: no-repeat;
+        /*height: 100vh;*/
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+    }
+    #canvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+    }
+    #saveBtn {
+        position: absolute;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        padding: 10px 20px;
+        background-color: #333;
+        color: #fff;
+        border: none;
+        cursor: pointer;
+        font-size: 16px;
+    }
+</style>
+</head>
+    <body id="body">
+        <div>
+            <canvas id="canvas"></canvas>
+        </div>
+        <button id="saveBtn">Save</button>
+    </body>
+</html>
+
+<script>
+    window.onload = function() {
+        var canvas = document.getElementById('canvas');
+        var context = canvas.getContext('2d');
+        var saveBtn = document.getElementById('saveBtn');
+        
+        // 設置畫布大小為背景圖片的大小
+        var backgroundImage = new Image();
+        backgroundImage.src = './image/bgimg.jpg';
+        backgroundImage.onload = function() {
+
+            document.getElementById("body").width = this.width
+            document.getElementById("body").height = this.height
+            canvas.width = this.width;
+            canvas.height = this.height;
+        };
+        
+        var isDrawing = false;
+        
+        canvas.addEventListener('mousedown', function(e) {
+            isDrawing = true;
+            context.beginPath();
+            context.moveTo(e.clientX - canvas.offsetLeft, e.clientY - canvas.offsetTop);
+        });
+        
+        canvas.addEventListener('mousemove', function(e) {
+            if (isDrawing) {
+                context.lineTo(e.clientX - canvas.offsetLeft, e.clientY - canvas.offsetTop);
+                context.strokeStyle = '#000';
+                context.lineWidth = 2;
+                context.stroke();
+            }
+        });
+        
+        canvas.addEventListener('mouseup', function() {
+            isDrawing = false;
+        });
+        
+        saveBtn.addEventListener('click', function() {
+            var dataURL = canvas.toDataURL();
+            // 可以在這裡使用JavaScript將dataURL發送到後端以保存圖片
+            console.log(dataURL);
+            alert('已保存');
+        });
+    };
+</script>
