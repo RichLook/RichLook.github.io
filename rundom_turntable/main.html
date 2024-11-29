@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>抽獎轉盤</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+        }
+        #container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        select {
+            padding: 5px;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+        canvas {
+            border: 2px solid #000;
+        }
+        label {
+            display: block;
+            margin-top: 20px;
+            font-size: 30px;
+            font-weight: bold;
+        }
+        h2{
+            margin: 5px;
+        }
+        #buttonRun{
+            border: 2px solid #000;
+            background-color: #FF0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            width: 50vw;
+        }
+        #resultLabel{
+            margin: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h2>抽獎轉盤</h2>
+    <div id="container">
+        <select id="colSelector"></select>
+        <canvas id="wheelCanvas" width="100%" height="100%"></canvas>
+        <label id="resultLabel">請點擊轉盤開始抽獎</label>
+        <div id="buttonRun">按鈕觸發</div>
+    </div>
+
+    <script>
+        chrome_w = Math.min(document.documentElement.scrollWidth * 0.8, 500)
+        document.getElementById("wheelCanvas").width = chrome_w
+        document.getElementById("wheelCanvas").height = chrome_w
+
+        const apiUrl = "https://script.google.com/macros/s/AKfycbwzSsRkRTDZnb7_TkpbzZcybQxv0fuA5OdAvnaGaT7IJYf3kLrBWjPv1uvzoKB578Dp/exec";
+        const canvas = document.getElementById('wheelCanvas');
+        const ctx = canvas.getContext('2d');
+        const colSelector = document.getElementById('colSelector');
+        const resultLabel = document.getElementById('resultLabel');
+
+        let currentOptions = [];
+        let spinning = false;
+        let currentAngle = 0;
+
+        // 繪製轉盤
+        function drawWheel(options, highlightedIndex = null) {
+            const totalSegments = options.length;
+            const arc = 2 * Math.PI / totalSegments;
+            const radius = canvas.width*0.9 / 2;
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2 + canvas.width*0.025;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // 畫每個區塊
+            for (let i = 0; i < totalSegments; i++) {
+                const startAngle = currentAngle + i * arc;
+                const endAngle = startAngle + arc;
+
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.arc(centerX, centerY, radius, startAngle, endAngle, false);
+                ctx.closePath();
+                ctx.fillStyle = i % 2 === 0 ? '#FFD700' : '#FF4500';
+                ctx.fill();
+                ctx.stroke();
+
+                // 標題文字
+                ctx.save();
+                ctx.translate(centerX, centerY);
+                ctx.rotate(startAngle + arc / 2);
+                ctx.textAlign = 'right';
+                ctx.fillStyle = '#000';
+                ctx.font = '16px Arial';
+                ctx.fillText(options[i], radius - 20, 5);
+                ctx.restore();
+            }
+
+            ctx.beginPath();
+            ctx.moveTo(centerX, canvas.width*0.075); // 箭頭頂部
+            ctx.lineTo(centerX - 15, canvas.width*0.01); // 左下角
+            ctx.lineTo(centerX + 15, canvas.width*0.01); // 右下角
+            ctx.closePath();
+            ctx.fillStyle = '#FF0000';
+            ctx.fill();
+        }
+
+
+        // 更新轉盤(下拉選單)
+        function updateWheel() {
+            const selectedCol = colSelector.value;
+            if (!selectedCol) return;
+
+            const colData = currentOptions[selectedCol];
+            const title = colData[0];
+            const options = colData.slice(2);
+
+            drawWheel(options);
+            resultLabel.textContent = `現在抽獎：${title}`;
+        }
+
+
+        // 是否正在旋轉中
+        let running = false;
+
+        // touch計算下的圓心座標
+        let touch_centerX = 0, touch_centerY = 0;
+        let touch_start_radian = 0;
+
+        let pre_touch_time = 0;
+        let pre_touch_radian = 0;
+        let delta_time = 0;
+        let delta_radian = 0;
+        let pre_touch_speed = 0;
+
+        function spinWheel_touch_down(options, e) {
+            // 計算圓心座標(在整個頁面中的角度)
+            const canvasLeft = document.getElementById("wheelCanvas").getBoundingClientRect().left     // 先抓canvas的左上角座標
+            const canvasTop  = document.getElementById("wheelCanvas").getBoundingClientRect().top
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            touch_centerX = centerX + canvasLeft;
+            touch_centerY = centerY + canvasTop;
+            console.log(touch_centerX, touch_centerY)
+
+            // 紀錄初始角度
+            const touch_X = e.changedTouches[0].clientX;
+            const touch_Y = e.changedTouches[0].clientY;
+            touch_start_radian = Math.atan2(touch_Y - touch_centerY, touch_X - touch_centerX) - currentAngle;
+
+
+            pre_touch_time = new Date().getTime();
+            pre_touch_radian = touch_start_radian;
+            pre_touch_speed = 0;
+        }
+        // 轉盤點擊move事件
+        function spinWheel_touch_move(options, e) {
+            // 如果正在轉就跳出
+            if (running) return;
+
+            const touch_X = e.changedTouches[0].clientX;
+            const touch_Y = e.changedTouches[0].clientY;
+            const touch_radian = Math.atan2(touch_Y - touch_centerY, touch_X - touch_centerX);
+
+            currentAngle = touch_radian - touch_start_radian
+            drawWheel(options);
+
+            delta_time = new Date().getTime() - pre_touch_time;
+            delta_radian = touch_radian - pre_touch_radian;
+            pre_touch_speed = delta_radian/delta_time;
+
+            pre_touch_time = pre_touch_time + delta_time;
+            pre_touch_radian = touch_radian;
+        }
+        function spinWheel_touch_up(options, e) {
+            console.log(pre_touch_speed);
+            RunRunRun(options, pre_touch_speed)
+        }
+
+
+        function RunRunRun(options, startSpeed = null){
+            // 如果正在轉就跳出
+            if (running) return;
+            // 切為正在轉圈
+            running = true;
+            console.log("start")
+
+            // 用按鈕的話給初值
+            if (startSpeed==null){
+                pre_touch_time = new Date().getTime();
+                startSpeed = 0.005;
+            }
+
+            function run1(){
+                delta_time = new Date().getTime() - pre_touch_time;
+                currentAngle = currentAngle + (startSpeed * (delta_time));
+                pre_touch_time = pre_touch_time + delta_time;
+
+                // 減速條件
+                if(startSpeed>0.01)
+                    startSpeed = startSpeed*0.99;
+                else if(startSpeed>0.001)
+                    startSpeed = startSpeed*0.995;
+                else
+                    startSpeed = Math.min(startSpeed - 0.000001, startSpeed*0.995);
+
+                // 是否繼續轉
+                if(startSpeed>0.00001){
+                    drawWheel(options);
+                    requestAnimationFrame(run1);
+                }
+                else{                    
+                    // 切為沒有在轉圈
+                    running = false;
+                    console.log("stop")
+
+
+
+
+
+
+// 這邊是錯的有問題(計算答案)
+
+
+                    // 計算答案
+                    const ansAngle = 360-(currentAngle*180/Math.PI + 360*100-270) % 360;  // +270朝上
+                    console.log(currentAngle)
+                    console.log("答案角度:"+ansAngle)
+
+                    const totalSegments = options.length;
+                    const arc = 360 / totalSegments;
+                    for (let i = 0; i < totalSegments; i++) {
+                        console.log(i * arc + " >= " + ansAngle)
+                        if(i * arc >= ansAngle){
+                            resultLabel.textContent = `恭喜！抽中了：${options[i]}`;
+                            break;
+                        }
+                        else
+                            resultLabel.textContent = `恭喜！抽中了：${options[0]}`;
+                    }
+
+
+                    
+                }
+            }
+
+            run1();
+
+        }
+
+        // 載入資料1
+        fetch(apiUrl)
+            .then(response => response.json())
+            .then(data => {
+                currentOptions = data;
+                Object.keys(data).forEach(key => {
+                    const option = document.createElement('option');
+                    option.value = key;
+                    option.textContent = `${key}: ${data[key][0]}`;
+                    colSelector.appendChild(option);
+                });
+                updateWheel();
+            })
+            .catch(error => {
+                console.error("Error fetching data:", error);
+                resultLabel.textContent = "無法載入資料，請稍後再試。";
+            });
+
+        // 載入資料2
+        // data = {"col1":["科技大樓-午餐",3,"便當","麵","麥當勞","涼麵","1","2"],"col2":["北投晚餐",8,"老北投","八方","阿山哥","其言餐車","滷味","兩兩","涼麵","1","2"]}
+        // currentOptions = data;
+        // Object.keys(data).forEach(key => {
+        //     const option = document.createElement('option');
+        //     option.value = key;
+        //     option.textContent = `${key}: ${data[key][0]}`;
+        //     colSelector.appendChild(option);
+        // });
+
+        // =========================================================
+        updateWheel();
+
+        // 綁定事件
+        colSelector.addEventListener('change', updateWheel);
+        document.getElementById("buttonRun").addEventListener('click', () => RunRunRun(currentOptions[colSelector.value].slice(2)));
+        // canvas.addEventListener('click', () => spinWheel(currentOptions[colSelector.value].slice(2)));
+        canvas.addEventListener('touchstart', (e) => spinWheel_touch_down(currentOptions[colSelector.value].slice(2), e));
+        canvas.addEventListener('touchmove', (e) => spinWheel_touch_move(currentOptions[colSelector.value].slice(2), e));
+        canvas.addEventListener('touchend', (e) => spinWheel_touch_up(currentOptions[colSelector.value].slice(2), e));
+    </script>
+</body>
+</html>
