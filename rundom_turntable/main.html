@@ -64,7 +64,7 @@
     </div>
 
     <script>
-        console.log(123)
+        console.log(1323)
         
         chrome_w = Math.min(document.documentElement.scrollWidth * 0.8, 500)
         document.getElementById("wheelCanvas").width = chrome_w
@@ -186,7 +186,7 @@
             drawWheel(options);
 
 
-            updata_deltaRadian();
+            updata_deltaRadian(touch_radian);
 
         }
         function spinWheel_touch_up(options, e) {
@@ -194,7 +194,7 @@
             RunRunRun(options, pre_touch_speed)
         }
 
-        function updata_deltaRadian(deltaRadian){
+        function updata_deltaRadian(touch_radian){
             delta_time = new Date().getTime() - pre_touch_time;
 
             delta_radian = touch_radian - pre_touch_radian;
