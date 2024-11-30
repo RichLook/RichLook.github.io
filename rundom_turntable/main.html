@@ -5,10 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>抽獎轉盤</title>
     <style>
+        html{
+            overscroll-behavior: none; /* 阻止下拉刷新 */
+            overflow: hidden;          /* 禁止滾動 */
+
+        }
         body {
             font-family: Arial, sans-serif;
             text-align: center;
             margin: 20px;
+            overscroll-behavior: none; /* 阻止下拉刷新 */
+            overflow: hidden;          /* 禁止滾動 */
+
         }
         #container {
             display: flex;
@@ -298,38 +306,12 @@
         canvas.addEventListener('touchmove', (e) => spinWheel_touch_move(currentOptions[colSelector.value].slice(2), e));
         canvas.addEventListener('touchend', (e) => spinWheel_touch_up(currentOptions[colSelector.value].slice(2), e));
 
+        //-----------
 
-        window.addEventListener('load', function() {
+        document.addEventListener('touchmove', function (e) {
+  e.preventDefault(); // 阻止默認滾動行為
+}, { passive: false });
 
-    var isWindowTop = false;
-    var lastTouchY = 0;
-
-    var touchStartHandler = function(e) {
-        if (e.touches.length !== 1) return;
-        lastTouchY = e.touches[0].clientY;
-        isWindowTop = (window.pageYOffset === 0);
-    };
-
-    var touchMoveHandler = function(e) {
-        var touchY = e.touches[0].clientY;
-        var touchYmove = touchY - lastTouchY;
-        lastTouchY = touchY;
-
-        if (isWindowTop) {
-            isWindowTop = false;
-            // 阻擋移動事件
-            if (touchYmove > 0) {
-                e.preventDefault();
-                return;
-            }
-        }
-
-    };
-
-    document.addEventListener('touchstart', touchStartHandler, false);
-    document.addEventListener('touchmove', touchMoveHandler, false);
-
-});
         
     </script>
 </body>
