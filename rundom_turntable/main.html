@@ -105,7 +105,7 @@
             }
 
             ctx.beginPath();
-            ctx.moveTo(centerX, canvas.width*0.075); // 箭頭頂部
+            ctx.moveTo(centerX, canvas.width*0.1); // 箭頭頂部
             ctx.lineTo(centerX - 15, canvas.width*0.01); // 左下角
             ctx.lineTo(centerX + 15, canvas.width*0.01); // 右下角
             ctx.closePath();
@@ -241,14 +241,13 @@
 
                     const totalSegments = options.length;
                     const arc = 360 / totalSegments;
+                    resultLabel.textContent = `${colSelector.value}：${options[0]}`;  // 初始答案
                     for (let i = 0; i < totalSegments; i++) {
                         console.log((i+1) * arc + " >= " + ansAngle)
                         if((i+1) * arc >= ansAngle){
-                            resultLabel.textContent = `${ansAngle}恭喜！抽中了：${options[i]}`;
+                            resultLabel.textContent = `${colSelector.value}：${options[i]}`;
                             break;
                         }
-                        else
-                            resultLabel.textContent = `${ansAngle}恭喜！抽中了：${options[0]}`;
                     }
 
 
