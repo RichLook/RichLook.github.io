@@ -236,14 +236,14 @@
                     
                     ansAngle = 270 - ansAngle;  // +270朝上
                     if (ansAngle<0) ansAngle += 360;
-                    console.log(currentAngle)
-                    console.log("答案角度:"+ansAngle)
+                    //console.log(currentAngle)
+                    //console.log("答案角度:"+ansAngle)
 
                     const totalSegments = options.length;
                     const arc = 360 / totalSegments;
                     for (let i = 0; i < totalSegments; i++) {
-                        console.log(i * arc + " >= " + ansAngle)
-                        if(i * arc >= ansAngle){
+                        console.log((i+1) * arc + " >= " + ansAngle)
+                        if((i+1) * arc >= ansAngle){
                             resultLabel.textContent = `${ansAngle}恭喜！抽中了：${options[i]}`;
                             break;
                         }
