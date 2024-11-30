@@ -190,8 +190,21 @@
 
         }
         function spinWheel_touch_up(options, e) {
-            console.log(pre_touch_speed);
-            RunRunRun(options, pre_touch_speed)
+
+            const touch_X = e.changedTouches[0].clientX;
+            const touch_Y = e.changedTouches[0].clientY;
+            const touch_radian = Math.atan2(touch_Y - touch_centerY, touch_X - touch_centerX);
+
+            currentAngle = touch_radian - touch_start_radian
+            drawWheel(options);
+
+
+            updata_deltaRadian(touch_radian);
+
+            
+            
+            
+            RunRunRun(options, Math.max(touch_a_record))
         }
 
         function updata_deltaRadian(touch_radian){
@@ -200,6 +213,14 @@
             delta_radian = touch_radian - pre_touch_radian;
             pre_touch_speed = delta_radian/delta_time;
 
+            if (delta_time > 1000)
+                touch_a_record = [0];
+            else{
+                touch_a_record.push(pre_touch_speed);
+                if(touch_a_record.length>30)
+                    touch_a_record.shift();
+            }
+            
             pre_touch_time = pre_touch_time + delta_time;
             pre_touch_radian = touch_radian;
         }
