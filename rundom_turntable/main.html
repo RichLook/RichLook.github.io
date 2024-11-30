@@ -64,7 +64,7 @@
     </div>
 
     <script>
-        console.log(1111)
+        console.log(456)
         
         chrome_w = Math.min(document.documentElement.scrollWidth * 0.8, 500)
         document.getElementById("wheelCanvas").width = chrome_w
@@ -154,6 +154,9 @@
         let touch_a_record = [];
 
         function spinWheel_touch_down(options, e) {
+            // 如果正在轉就跳出
+            if (running) return;
+            
             // 計算圓心座標(在整個頁面中的角度)
             const canvasLeft = document.getElementById("wheelCanvas").getBoundingClientRect().left     // 先抓canvas的左上角座標
             const canvasTop  = document.getElementById("wheelCanvas").getBoundingClientRect().top
@@ -190,6 +193,8 @@
 
         }
         function spinWheel_touch_up(options, e) {
+            // 如果正在轉就跳出
+            if (running) return;
 
             const touch_X = e.changedTouches[0].clientX;
             const touch_Y = e.changedTouches[0].clientY;
