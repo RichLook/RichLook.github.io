@@ -231,7 +231,10 @@
 
 
                     // 計算答案
-                    const ansAngle = 270 - ((currentAngle*180/Math.PI + 360*100) % 360);  // +270朝上
+                    const ansAngle = (currentAngle*180/Math.PI)%360;
+                    if (ansAngle<0) ansAngle += 360;
+                    
+                    ansAngle = 270 - ansAngle;  // +270朝上
                     if (ansAngle<0) ansAngle += 360;
                     console.log(currentAngle)
                     console.log("答案角度:"+ansAngle)
@@ -241,11 +244,11 @@
                     for (let i = 0; i < totalSegments; i++) {
                         console.log(i * arc + " >= " + ansAngle)
                         if(i * arc >= ansAngle){
-                            resultLabel.textContent = `恭喜！抽中了：${options[i]}`;
+                            resultLabel.textContent = `${ansAngle}恭喜！抽中了：${options[i]}`;
                             break;
                         }
                         else
-                            resultLabel.textContent = `恭喜！抽中了：${options[0]}`;
+                            resultLabel.textContent = `${ansAngle}恭喜！抽中了：${options[0]}`;
                     }
 
 
