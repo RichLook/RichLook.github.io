@@ -64,7 +64,7 @@
     </div>
 
     <script>
-        console.log(1323)
+        console.log(13003)
         
         chrome_w = Math.min(document.documentElement.scrollWidth * 0.8, 500)
         document.getElementById("wheelCanvas").width = chrome_w
@@ -220,7 +220,7 @@
                 if(touch_a_record.length>30)
                     touch_a_record.shift();
             }
-            
+            console.log(touch_a_record)
             pre_touch_time = pre_touch_time + delta_time;
             pre_touch_radian = touch_radian;
         }
@@ -228,6 +228,7 @@
         function RunRunRun(options, startSpeed = null){
             // 如果正在轉就跳出
             if (running) return;
+            console.log("run="+startSpeed)
             // 切為正在轉圈
             running = true;
             console.log("start")
