@@ -231,7 +231,7 @@
 
 
                     // 計算答案
-                    const ansAngle = (currentAngle*180/Math.PI)%360;
+                    let ansAngle = (currentAngle*180/Math.PI)%360;
                     if (ansAngle<0) ansAngle += 360;
                     
                     ansAngle = 270 - ansAngle;  // +270朝上
