@@ -231,7 +231,8 @@
 
 
                     // 計算答案
-                    const ansAngle = 360-(currentAngle*180/Math.PI + 360*100-270) % 360;  // +270朝上
+                    const ansAngle = 270 - ((currentAngle*180/Math.PI + 360*100) % 360);  // +270朝上
+                    if (ansAngle<0) ansAngle += 360;
                     console.log(currentAngle)
                     console.log("答案角度:"+ansAngle)
 
