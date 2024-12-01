@@ -434,7 +434,7 @@
                     Object.keys(data).forEach(key => {
                         const option = document.createElement('option');
                         option.value = key;
-                        option.textContent = `${key}: ${data[key][0]}`;
+                        option.textContent = `${data[key][0]}`;
                         colSelector.appendChild(option);
                     });
                     updateWheel();
