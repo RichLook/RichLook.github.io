@@ -81,8 +81,8 @@
         let currentAngle = 0;
 
 
-        // const clickSound = new Audio('sh_pickup02.mp3');
-        const clickSound = new Audio('w.mp3');
+        const clickSound = new Audio('sh_pickup02.mp3');
+        //const clickSound = new Audio('w.mp3');
         let sound_num = 0;
         let sound_time = new Date().getTime();
 
@@ -358,7 +358,7 @@
         function sound_play(speed){
             // console.log((new Date().getTime() - sound_time) + " ,   " + sound_num)
             if ((new Date().getTime() - sound_time) > sound_num){
-                // clickSound.currentTime = 0; // 重置音效時間
+                clickSound.currentTime = 0; // 重置音效時間
                 clickSound.play();
                 let add = speed*(-90000)+1000
                 if(add<100) add=100
