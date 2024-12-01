@@ -7,7 +7,7 @@
     <style>
         html{
             overscroll-behavior: none; /* 阻止下拉刷新 */
-            overflow: hidden;          /* 禁止滾動 */
+            /*overflow: hidden;          /* 禁止滾動 */
 
         }
         body {
@@ -15,7 +15,7 @@
             text-align: center;
             margin: 20px;
             overscroll-behavior: none; /* 阻止下拉刷新 */
-            overflow: hidden;          /* 禁止滾動 */
+            /*overflow: hidden;          /* 禁止滾動 */
 
         }
         #container {
@@ -64,7 +64,7 @@
     </div>
 
     <script>
-        console.log(456)
+        console.log(13003)
         
         chrome_w = Math.min(document.documentElement.scrollWidth * 0.8, 500)
         document.getElementById("wheelCanvas").width = chrome_w
@@ -79,6 +79,12 @@
         let currentOptions = [];
         let spinning = false;
         let currentAngle = 0;
+
+
+        // const clickSound = new Audio('sh_pickup02.mp3');
+        const clickSound = new Audio('w.mp3');
+        let sound_num = 0;
+        let sound_time = new Date().getTime();
 
         // 繪製轉盤
         function drawWheel(options, highlightedIndex = null) {
@@ -153,6 +159,7 @@
 
         let touch_a_record = [];
 
+        // 轉盤點擊down事件
         function spinWheel_touch_down(options, e) {
             // 如果正在轉就跳出
             if (running) return;
@@ -164,13 +171,13 @@
             const centerY = canvas.height / 2;
             touch_centerX = centerX + canvasLeft;
             touch_centerY = centerY + canvasTop;
-            console.log(touch_centerX, touch_centerY)
+            // console.log(touch_centerX, touch_centerY)
 
             // 紀錄初始角度
             const touch_X = e.changedTouches[0].clientX;
             const touch_Y = e.changedTouches[0].clientY;
-            touch_start_radian = Math.atan2(touch_Y - touch_centerY, touch_X - touch_centerX) - currentAngle;
-
+            touch_start_radian = (Math.atan2(touch_Y - touch_centerY, touch_X - touch_centerX) - currentAngle)%(2*Math.PI);
+            // console.log("滑鼠角度:" + touch_start_radian);
 
             pre_touch_time = new Date().getTime();
             pre_touch_radian = touch_start_radian;
@@ -184,6 +191,7 @@
             const touch_X = e.changedTouches[0].clientX;
             const touch_Y = e.changedTouches[0].clientY;
             const touch_radian = Math.atan2(touch_Y - touch_centerY, touch_X - touch_centerX);
+            
 
             currentAngle = touch_radian - touch_start_radian
             drawWheel(options);
@@ -192,6 +200,7 @@
             updata_deltaRadian(touch_radian);
 
         }
+        // 轉盤點擊up事件
         function spinWheel_touch_up(options, e) {
             // 如果正在轉就跳出
             if (running) return;
@@ -206,16 +215,45 @@
 
             updata_deltaRadian(touch_radian);
 
+            // 找出最大數值
+            function findMaxAbsoluteValue(arr) {
+                return arr.reduce((max, num) => Math.abs(num) > Math.abs(max) ? num : max);
+            }
             
-            
-            
-            RunRunRun(options, Math.max(...touch_a_record))
+            RunRunRun(options, findMaxAbsoluteValue(touch_a_record))
+            touch_a_record = [];    // 轉完後把紀錄清空
         }
 
         function updata_deltaRadian(touch_radian){
             delta_time = new Date().getTime() - pre_touch_time;
 
+            function getQuadrant(radian){
+                radian = radian % (2*Math.PI)
+                if(radian >= 0)
+                    if(radian < Math.PI/2)
+                        return 1;
+                    else
+                        return 2;
+                else
+                    if(radian < Math.PI/(-2))
+                        return 3;
+                    else
+                        return 4;
+            }
+
+            if(getQuadrant(touch_radian)==2)
+                if(getQuadrant(pre_touch_radian)==3)
+                    pre_touch_radian = pre_touch_radian + (2*Math.PI);
+            if(getQuadrant(touch_radian)==3)
+                if(getQuadrant(pre_touch_radian)==2)
+                    touch_radian = touch_radian + (2*Math.PI);
+
             delta_radian = touch_radian - pre_touch_radian;
+            
+
+            // console.log("滑鼠角度:" + touch_radian);
+            // console.log("象限:" + getQuadrant(touch_radian));
+
             pre_touch_speed = delta_radian/delta_time;
 
             if (delta_time > 500)
@@ -225,7 +263,7 @@
                 if(touch_a_record.length>10)
                     touch_a_record.shift();
             }
-            console.log(touch_a_record)
+            // console.log(touch_a_record)
             pre_touch_time = pre_touch_time + delta_time;
             pre_touch_radian = touch_radian;
         }
@@ -233,7 +271,6 @@
         function RunRunRun(options, startSpeed = null){
             // 如果正在轉就跳出
             if (running) return;
-            console.log("run="+startSpeed)
             // 切為正在轉圈
             running = true;
             console.log("start")
@@ -243,22 +280,37 @@
                 pre_touch_time = new Date().getTime();
                 startSpeed = 0.005;
             }
+            console.log("run="+startSpeed)
 
+            // 設定減速乘數與減數
+            const ax = 0.995;       //快速時的減速，乘法
+            const bx = 0.000001;    //慢速時的減速，減法
+            const cx = bx / (1-ax); //上述規則改變時的門檻
+            sound_num = 0;
+            sound_time = new Date().getTime();
             function run1(){
                 delta_time = new Date().getTime() - pre_touch_time;
                 currentAngle = currentAngle + (startSpeed * (delta_time));
                 pre_touch_time = pre_touch_time + delta_time;
 
+                const absSpeed = Math.abs(startSpeed);
+
+
+                sound_play(absSpeed)
                 // 減速條件
-                if(startSpeed>0.01)
+                if(absSpeed>0.01)           // ~0.01
                     startSpeed = startSpeed*0.99;
-                else if(startSpeed>0.001)
-                    startSpeed = startSpeed*0.995;
-                else
-                    startSpeed = Math.min(startSpeed - 0.000001, startSpeed*0.995);
+                else if(absSpeed > cx)      // 0.01~cx
+                    startSpeed = startSpeed*ax;
+                else                        // cx~
+                    if(startSpeed > 0) // 判斷正負值
+                        startSpeed = startSpeed - bx;
+                    else
+                        startSpeed = startSpeed + bx;
 
                 // 是否繼續轉
-                if(startSpeed>0.00001){
+                if(absSpeed>0.00001){
+                    // console.log(startSpeed)
                     drawWheel(options);
                     requestAnimationFrame(run1);
                 }
@@ -269,9 +321,8 @@
 
 
 
-
-
-
+                    const clickSound2 = new Audio('OK.mp3');
+                    clickSound2.play();
 // 這邊是錯的有問題(計算答案)
 
 
@@ -302,6 +353,22 @@
 
             run1();
 
+        }
+
+        function sound_play(speed){
+            // console.log((new Date().getTime() - sound_time) + " ,   " + sound_num)
+            if ((new Date().getTime() - sound_time) > sound_num){
+                // clickSound.currentTime = 0; // 重置音效時間
+                clickSound.play();
+                let add = speed*(-90000)+1000
+                if(add<100) add=100
+                sound_num+=(add)
+                console.log(sound_num)
+            }
+
+            // const clickSound = new Audio('sh_pickup02.mp3');
+            // let sound_num = 0;
+            // let sound_time = new Date().getTime();
         }
 
         // 載入資料1
