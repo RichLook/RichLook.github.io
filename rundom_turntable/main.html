@@ -277,7 +277,15 @@
             // 用按鈕的話給初值
             if (startSpeed==null){
                 pre_touch_time = new Date().getTime();
-                startSpeed = 0.005;
+
+
+                function getRandomInRange(min, max) {
+                    const sign = Math.random() < 0.5 ? -1 : 1; // 隨機決定正負號
+                    const randomValue = Math.random() * (max - min) + min; // 生成範圍內的隨機數
+                    return sign * randomValue; // 乘以正負號
+                }
+                startSpeed = getRandomInRange(0.005, 0.05);
+
             }
             console.log("run="+startSpeed)
 
@@ -322,7 +330,7 @@
 
                     const clickSound2 = new Audio('OK.mp3');
                     clickSound2.play();
-// 這邊是錯的有問題(計算答案)
+
 
 
                     // 計算答案
@@ -370,33 +378,37 @@
             // let sound_time = new Date().getTime();
         }
 
-        // 載入資料1
-        // fetch(apiUrl)
-        //     .then(response => response.json())
-        //     .then(data => {
-        //         currentOptions = data;
-        //         Object.keys(data).forEach(key => {
-        //             const option = document.createElement('option');
-        //             option.value = key;
-        //             option.textContent = `${key}: ${data[key][0]}`;
-        //             colSelector.appendChild(option);
-        //         });
-        //         updateWheel();
-        //     })
-        //     .catch(error => {
-        //         console.error("Error fetching data:", error);
-        //         resultLabel.textContent = "無法載入資料，請稍後再試。";
-        //     });
+        if(false){
+            // 載入資料1
+            fetch(apiUrl)
+                .then(response => response.json())
+                .then(data => {
+                    currentOptions = data;
+                    Object.keys(data).forEach(key => {
+                        const option = document.createElement('option');
+                        option.value = key;
+                        option.textContent = `${key}: ${data[key][0]}`;
+                        colSelector.appendChild(option);
+                    });
+                    updateWheel();
+                })
+                .catch(error => {
+                    console.error("Error fetching data:", error);
+                    resultLabel.textContent = "無法載入資料，請稍後再試。";
+                });
 
-        // 載入資料2
-        data = {"col1":["科技大樓-午餐",3,"便當","麵","麥當勞","涼麵","1","2"],"col2":["北投晚餐",8,"老北投","八方","阿山哥","其言餐車","滷味","兩兩","涼麵","1","2"]}
-        currentOptions = data;
-        Object.keys(data).forEach(key => {
-            const option = document.createElement('option');
-            option.value = key;
-            option.textContent = `${key}: ${data[key][0]}`;
-            colSelector.appendChild(option);
-        });
+        }
+        else{
+            // 載入資料2
+            data = {"col1":["科技大樓-午餐",3,"便當","麵","麥當勞","涼麵","1","2"],"col2":["北投晚餐",8,"老北投","八方","阿山哥","其言餐車","滷味","兩兩","涼麵","1","2"]}
+            currentOptions = data;
+            Object.keys(data).forEach(key => {
+                const option = document.createElement('option');
+                option.value = key;
+                option.textContent = `${key}: ${data[key][0]}`;
+                colSelector.appendChild(option);
+            });
+        }
 
         // =========================================================
         updateWheel();
